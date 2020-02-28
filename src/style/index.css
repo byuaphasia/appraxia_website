@@ -1,0 +1,27 @@
+:root {
+  --color-1: #313d51;
+  --color-2: #4d6584;
+  --color-3: #99b9d1;
+  --color-4: #dfe7ea;
+  --color-5: #ffcb29;
+  margin: 0;
+  padding: 0;
+}
+
+@font-face {
+  /* Futura Bold, ALL CAPS */
+  font-family: 'CustomHeading';
+  src: url("fonts/Futura Bold.ttf") format("truetype");
+}
+
+@font-face {
+  /* Futura Demi/Medium, Title Case */
+  font-family: 'CustomSubHeading';
+  src: url("fonts/Futura Medium.ttf") format("truetype");
+}
+
+@font-face {
+  /* Futura Light, sentence case */
+  font-family: 'CustomBodyText';
+  src: url("fonts/Futura Light.ttf") format("truetype");
+}
