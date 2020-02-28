@@ -3,7 +3,7 @@ import IconLogo from '../assets/img/Icon Logo.png';
 import TextLogo from '../assets/img/Text Logo.png';
 import EmailIcon from '../assets/icon/email-24px.svg';
 import PasswordIcon from '../assets/icon/vpn_key-24px.svg';
-import InputField from "./InputField";
+import InputField from "../components/InputField";
 
 interface Props {
 
