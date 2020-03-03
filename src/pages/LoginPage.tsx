@@ -8,20 +8,26 @@ import InputField from "../components/InputField";
 import {LoggedOutRoutes} from "../constants/routes";
 import CustomButton from "../components/CustomButton";
 
+import BackendClient from "../helpers/backend-client";
+
 interface Props {
     email?: string,
-    password?: string
+    password?: string,
 }
 
 interface State {
     email: string,
-    password: string
+    password: string,
+    backendClient: BackendClient,
 }
 
 export default class LoginPage extends React.Component<Props, State> {
+    componentDidMount(): void {
+        this.setState({backendClient: new BackendClient()});
+    }
 
     render() {
-        const {email, password} = this.state || {};
+        const {email, password, backendClient} = this.state || {};
         return (
             <div id="login">
                 <div className="splash">
@@ -40,7 +46,9 @@ export default class LoginPage extends React.Component<Props, State> {
                             startAdornment={PasswordIcon}
                             onChange={value => this.setState({password: value})}/>
 
-                <CustomButton label="Sign In" onClick={() => {}}/>
+                <CustomButton label="Sign In" onClick={async () => {
+                    await backendClient.healthCheck();
+                }}/>
                 <button type="button" className="link">Forgot Password?</button>
                 <Link className="link" to={LoggedOutRoutes.SIGNUP}>Sign Up</Link>
             </div>
