@@ -19,9 +19,8 @@ export interface Attempt {
 }
 
 export default class BackendClient {
-    async healthCheck() {
-        fetch("/api/healthcheck")
-            .then(res => res.json())
-            .then(result => console.log(result));
+    async healthCheck(): Promise<string> {
+        let response = await fetch("/api/healthcheck").then(r => r.json());
+        return response["message"];
     }
 }

@@ -47,7 +47,7 @@ export default class LoginPage extends React.Component<Props, State> {
                             onChange={value => this.setState({password: value})}/>
 
                 <CustomButton label="Sign In" onClick={async () => {
-                    await backendClient.healthCheck();
+                    console.log("Health Check: " + await backendClient.healthCheck());
                 }}/>
                 <button type="button" className="link">Forgot Password?</button>
                 <Link className="link" to={LoggedOutRoutes.SIGNUP}>Sign Up</Link>
