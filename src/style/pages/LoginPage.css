@@ -1,0 +1,29 @@
+/*----------------Login Page------------------*/
+#login {
+    max-width: 300px;
+    margin: auto;
+    display: grid;
+    justify-content: center;
+    grid-row-gap: 16px;
+}
+
+#login .custom-button {
+    width: 100px;
+    justify-self: end;
+}
+
+#login button.link {
+    background: none;
+    border: none;
+    font-family: CustomBodyText, sans-serif;
+    font-size: 16px;
+}
+
+#login .link {
+    display: grid;
+    justify-content: center;
+    justify-items: center;
+    text-decoration: none;
+    color: var(--color-1);
+    font-family: CustomBodyText, sans-serif;
+}

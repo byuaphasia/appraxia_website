@@ -1,5 +1,7 @@
 import React from 'react';
 
+import "../style/components/InputField.css";
+
 interface Props {
     type?: string;
     label?: string;

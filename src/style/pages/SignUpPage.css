@@ -1,0 +1,26 @@
+/*-----------------Sign Up Page---------*/
+#sign-up {
+    max-width: 300px;
+    margin: auto;
+    display: grid;
+    justify-content: center;
+    grid-row-gap: 16px;
+}
+
+#sign-up .links {
+    display: grid;
+    justify-content: space-between;
+    grid-template-columns: auto auto;
+    align-items: center;
+}
+
+#sign-up .back {
+    text-decoration: none;
+    color: var(--color-1);
+    margin-left: 35px;
+    font-family: CustomBodyText, sans-serif;
+}
+
+#sign-up .custom-button {
+    width: 100px;
+}

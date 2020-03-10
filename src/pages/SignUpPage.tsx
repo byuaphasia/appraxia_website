@@ -13,6 +13,8 @@ import CustomButton from "../components/CustomButton";
 import {Link} from "react-router-dom";
 import {LoggedOutRoutes} from "../constants/routes";
 
+import "../style/pages/SignUpPage.css";
+
 interface Props {
     email?: string,
     password?: string

@@ -1,5 +1,7 @@
 import React from "react";
 
+import "../style/components/CustomButton.css";
+
 interface Props {
     label: string;
     onClick(): void;

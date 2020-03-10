@@ -1,5 +1,5 @@
 export const LoggedOutRoutes: any = {
-    LOGIN: "/",
+    LOGIN: "/login",
     SIGNUP: "/sign-up",
     FORGOTPASSWORD: "/forgot-password",
 };

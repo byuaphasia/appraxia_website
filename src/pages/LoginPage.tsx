@@ -1,14 +1,15 @@
 import React from 'react';
-import {NavLink as Link} from "react-router-dom";
-import IconLogo from '../assets/img/Icon Logo.png';
-import TextLogo from '../assets/img/Text Logo.png';
+import {NavLink as Link, Redirect} from "react-router-dom";
 import EmailIcon from '../assets/icon/email-24px.svg';
 import PasswordIcon from '../assets/icon/vpn_key-24px.svg';
 import InputField from "../components/InputField";
-import {LoggedOutRoutes} from "../constants/routes";
+import {AdminRoutes, LoggedOutRoutes} from "../constants/routes";
 import CustomButton from "../components/CustomButton";
+import Splash from "../components/Splash";
 
 import BackendClient from "../helpers/backend-client";
+
+import "../style/pages/LoginPage.css"
 
 interface Props {
     email?: string,
@@ -19,6 +20,7 @@ interface State {
     email: string,
     password: string,
     backendClient: BackendClient,
+    toAdminDashboard: boolean
 }
 
 export default class LoginPage extends React.Component<Props, State> {
@@ -27,13 +29,15 @@ export default class LoginPage extends React.Component<Props, State> {
     }
 
     render() {
-        const {email, password, backendClient} = this.state || {};
+        const {email, password, backendClient, toAdminDashboard} = this.state || {};
+
+        if (toAdminDashboard) {
+            return <Redirect to={AdminRoutes.HOME}/>;
+        }
+
         return (
             <div id="login">
-                <div className="splash">
-                    <img className="icon" src={IconLogo} alt="icon"/>
-                    <img className="text" src={TextLogo} alt="text"/>
-                </div>
+                <Splash/>
                 <br/>
                 <InputField label="Email"
                             value={email}
@@ -48,6 +52,7 @@ export default class LoginPage extends React.Component<Props, State> {
 
                 <CustomButton label="Sign In" onClick={async () => {
                     console.log("Health Check: " + await backendClient.healthCheck());
+                    this.setState({toAdminDashboard: true})
                 }}/>
                 <button type="button" className="link">Forgot Password?</button>
                 <Link className="link" to={LoggedOutRoutes.SIGNUP}>Sign Up</Link>
