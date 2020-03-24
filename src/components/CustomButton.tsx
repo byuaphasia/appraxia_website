@@ -2,14 +2,18 @@ import React from "react";
 
 import "../style/components/CustomButton.css";
 
-interface Props {
+export interface CustomButtonProps {
+    disabled?: boolean;
     label: string;
     onClick(): void;
 }
 
-export default class CustomButton extends React.Component<Props, {}> {
+export default class CustomButton extends React.Component<CustomButtonProps, {}> {
     render() {
-        const {label, onClick} = this.props;
-        return <button className="custom-button" onClick={onClick}>{label}</button>
+        const {label, onClick, disabled = false} = this.props;
+        return <button className="custom-button"
+                       disabled={disabled}
+                       onClick={onClick}
+        >{label}</button>
     }
 }

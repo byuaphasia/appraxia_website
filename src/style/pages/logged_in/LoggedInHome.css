@@ -1,0 +1,8 @@
+/*--------------------Admin Home Page----------------*/
+#logged-in {
+    max-width: 300px;
+    margin: auto;
+    display: grid;
+    justify-content: center;
+    grid-row-gap: 16px;
+}

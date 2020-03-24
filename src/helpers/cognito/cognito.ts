@@ -1,6 +1,6 @@
 // This article was helpful: https://aws-amplify.github.io/docs/js/authentication
 
-import UserAttributes from '../model/UserAttributes';
+import UserAttributes from '../../model/UserAttributes';
 import Amplify, {Auth} from 'aws-amplify';
 import {
     CognitoUser,

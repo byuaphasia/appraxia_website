@@ -12,13 +12,13 @@ interface Props {
 
 export default class InputField extends React.Component<Props, {}> {
     render() {
-        const {type, label, startAdornment} = this.props;
+        const {type, label, startAdornment, onChange} = this.props;
         return <div className="input-field">
             {startAdornment && <span className="start">
               <img src={startAdornment} alt="start"/>
             </span>}
             <div className="group">
-                <input type={type ? type : 'text'} required/>
+                <input type={type ? type : 'text'} required onChange={e => onChange(e.target.value)}/>
                 <span className="highlight"/>
                 <span className="bar"/>
                 <label>{label}</label>
