@@ -44,17 +44,9 @@ class App extends React.Component<{}, State> {
         this.setState({isLoggedIn: loggedIn, isAdmin: admin});
     }
 
-    setIsLoggedIn(value: boolean) {
-        this.setState({isLoggedIn: value});
+    handleLogOut() {
+        this.setState({isLoggedIn: false, isAdmin: false});
     }
-
-    setIsAdmin(value: boolean) {
-        this.setState({isAdmin: value});
-    }
-
-    tempSetState(state: any) {
-        this.setState(state);
-    };
 
     render() {
         const {isLoggedIn, isAdmin} = this.state || {};
@@ -67,8 +59,8 @@ class App extends React.Component<{}, State> {
                             {/*--------------Logged In Routes--------------------*/}
                             <ProtectedRoute exact isAuthenticated={isLoggedIn} path={LoggedInRoutes.HOME}>
                                 {/*Set which home page to go to*/}
-                                {isAdmin ? <AdminHome logout={() => this.tempSetState({isLoggedIn: false, isAdmin: false})}/>
-                                : <LoggedInHome logout={() => this.tempSetState({isLoggedIn: false, isAdmin: false})}/>}
+                                {isAdmin ? <AdminHome logout={this.handleLogOut.bind(this)}/>
+                                : <LoggedInHome logout={this.handleLogOut.bind(this)}/>}
                             </ProtectedRoute>
                             <ProtectedRoute exact isAuthenticated={isLoggedIn} path={LoggedInRoutes.TEST}>
                                 <LoggedInTest/>
@@ -92,7 +84,7 @@ class App extends React.Component<{}, State> {
                                             isAuthenticated={isLoggedIn}
                                             path={LoggedOutRoutes.LOGIN}>
                                 <LoginPage setIsLoggedIn={(value: boolean, isAdmin: boolean) =>
-                                        this.tempSetState({isLoggedIn: value, isAdmin: isAdmin})}/>
+                                        this.setState({isLoggedIn: value, isAdmin: isAdmin})}/>
                             </LoggedOutRoute>
                         </Switch>
                     </Router>
