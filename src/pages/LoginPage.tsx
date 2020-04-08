@@ -32,6 +32,7 @@ class LoginPage extends React.Component<Props, State> {
     componentDidMount(): void {
         this.setState({
             backendClient: new BackendClient(),
+            //TESTING PURPOSES ONLY TODO: Remove for production
             email: "drakebwade@gmail.com",
             password: "Password1"
         });
