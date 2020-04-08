@@ -4,14 +4,15 @@ import EmailIcon from '../assets/icon/email-24px.svg';
 import PasswordIcon from '../assets/icon/vpn_key-24px.svg';
 import InputField from "../components/InputField";
 import {LoggedOutRoutes} from "../constants/routes";
-import LoadingButton from "../components/LoadingButton";
+import Errors from "../components/Errors";
 import Splash from "../components/Splash";
 
 import BackendClient from "../helpers/backend-client";
 import Cognito from "../helpers/cognito/cognito";
 
-import "../style/pages/LoginPage.css"
+import "../style/pages/LoginPage.css";
 import {withCognito} from "../helpers/cognito/CognitoContext";
+import CustomButton from "../components/CustomButton";
 
 interface Props {
     email?: string,
@@ -26,6 +27,8 @@ interface State {
     backendClient: BackendClient,
     toAdminDashboard: boolean,
     toDashboard: boolean,
+    errors: string[],
+    showErrors: boolean;
 }
 
 class LoginPage extends React.Component<Props, State> {
@@ -34,7 +37,8 @@ class LoginPage extends React.Component<Props, State> {
             backendClient: new BackendClient(),
             //TESTING PURPOSES ONLY TODO: Remove for production
             email: "drakebwade@gmail.com",
-            password: "Password1"
+            password: "Password1",
+            showErrors: false
         });
     }
 
@@ -42,19 +46,34 @@ class LoginPage extends React.Component<Props, State> {
         const {setIsLoggedIn, cognito} = this.props;
         const {email, password, backendClient} = this.state;
 
+        let errors: string[] = [];
+
         await cognito.signIn(email, password).catch(reason => {
-            console.error(reason);
+            errors.push(reason);
+            this.setState({errors, showErrors: true});
         });
 
         const userType = await backendClient.getUserType().catch(reason => {
-            console.error(reason);
+            errors.push(reason);
+            this.setState({errors, showErrors: true});
         });
 
-        setIsLoggedIn(true, userType === "admin");
+        if (errors.length === 0) {
+            setIsLoggedIn(true, userType === "admin");
+        }
+        else {
+            return;
+        }
+    }
+
+    async handleKeyPress(event: any) {
+        if (event.key === "Enter") {
+            await this.handleSignIn();
+        }
     }
 
     render() {
-        const {email, password} = this.state || {};
+        const {email, password, errors = [], showErrors} = this.state || {};
 
         return (
             <div id="login">
@@ -63,15 +82,19 @@ class LoginPage extends React.Component<Props, State> {
                 <InputField label="Email"
                             value={email}
                             startAdornment={EmailIcon}
+                            onKeyPress={this.handleKeyPress.bind(this)}
                             onChange={value => this.setState({email: value})}/>
                 <br/>
                 <InputField label="Password"
                             value={password}
                             type="password"
                             startAdornment={PasswordIcon}
+                            onKeyPress={this.handleKeyPress.bind(this)}
                             onChange={value => this.setState({password: value})}/>
 
-                <LoadingButton label="Sign In" onClick={async () => await this.handleSignIn()}/>
+                <Errors errors={errors} show={showErrors} onClose={() => this.setState({showErrors: false})}/>
+
+                <CustomButton label="Sign In" type="submit" onClick={this.handleSignIn.bind(this)}/>
                 <button type="button" className="link">Forgot Password?</button>
                 <Link className="link" to={LoggedOutRoutes.SIGNUP}>Sign Up</Link>
             </div>
