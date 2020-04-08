@@ -10,7 +10,7 @@ import Cognito from "../../helpers/cognito/cognito";
 
 interface Props extends RouteComponentProps {
     cognito: Cognito
-    setIsLoggedIn(value: boolean): void
+    setIsLoggedIn(): void
 }
 
 interface State {
@@ -18,8 +18,16 @@ interface State {
 }
 
 class LoggedInHome extends React.Component<Props, State> {
+
+    async handleSignOut() {
+        const {cognito, setIsLoggedIn} = this.props;
+        await cognito.signOut();
+        setIsLoggedIn();
+        this.setState({logout: true});
+    }
+
     render() {
-        const {history, cognito, setIsLoggedIn} = this.props;
+        const {history} = this.props;
         const {logout} = this.state || {};
 
         if (logout) {
@@ -31,11 +39,7 @@ class LoggedInHome extends React.Component<Props, State> {
                 <Splash/>
                 <br/>
                 <CustomButton label="Upload New Session" onClick={() => history.push(LoggedInRoutes.TEST)}/>
-                <CustomButton label="Sign Out" onClick={async () => {
-                    await cognito.signOut();
-                    setIsLoggedIn(false);
-                    this.setState({logout: true})
-                }}/>
+                <CustomButton label="Sign Out" onClick={this.handleSignOut.bind(this)}/>
             </div>
         )
     }

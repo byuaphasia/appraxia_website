@@ -7,6 +7,7 @@ import {AdminRoutes, LoggedOutRoutes} from "../../constants/routes";
 import "../../style/pages/admin/AdminHome.css";
 
 interface Props extends RouteComponentProps {
+    logout(): void;
 }
 
 interface State {
@@ -14,6 +15,13 @@ interface State {
 }
 
 class AdminHome extends React.Component<Props, State> {
+
+    async handleSignOut() {
+        const {logout} = this.props;
+        logout();
+        this.setState({logout: true});
+    }
+
     render() {
         const {history} = this.props;
         const {logout} = this.state || {};
@@ -28,7 +36,7 @@ class AdminHome extends React.Component<Props, State> {
                 <br/>
                 <CustomButton label="View Data" onClick={() => history.push(AdminRoutes.VIEWDATA)}/>
                 <CustomButton label="Upload New Session" onClick={() => history.push(AdminRoutes.REPORT)}/>
-                <CustomButton label="Sign Out" onClick={() => this.setState({logout: true})}/>
+                <CustomButton label="Sign Out" onClick={this.handleSignOut.bind(this)}/>
             </div>
         )
     }

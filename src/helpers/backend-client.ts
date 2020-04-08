@@ -42,7 +42,7 @@ export default class BackendClient {
                         "TOKEN": await this.cognito.getJWT(),
                     }
                 }).then(r => r.json()).catch(r => reject(r));
-                resolve(response["message"]);
+                resolve(response["userType"]);
             }
             else {
                 reject("Not Logged In");
