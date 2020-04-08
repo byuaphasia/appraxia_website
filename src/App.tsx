@@ -44,8 +44,9 @@ class App extends React.Component<{}, State> {
         this.setState({isLoggedIn: loggedIn, isAdmin: admin});
     }
 
-    handleLogOut() {
+    async handleLogOut() {
         this.setState({isLoggedIn: false, isAdmin: false});
+        await this.cognito.signOut();
     }
 
     render() {
