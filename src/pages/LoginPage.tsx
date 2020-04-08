@@ -40,7 +40,7 @@ class LoginPage extends React.Component<Props, State> {
 
     async handleSignIn() {
         const {setIsLoggedIn, setIsAdmin, cognito} = this.props;
-        const {email, password} = this.state;
+        const {email, password, backendClient} = this.state;
 
         await cognito.signIn(email, password).catch(reason => {
             console.log(reason);
