@@ -17,8 +17,7 @@ interface Props {
     email?: string,
     password?: string,
     cognito: Cognito,
-    setIsLoggedIn(value: boolean): void,
-    setIsAdmin(value: boolean): void
+    setIsLoggedIn(value: boolean, isAdmin: boolean): void
 }
 
 interface State {
@@ -33,21 +32,25 @@ class LoginPage extends React.Component<Props, State> {
     componentDidMount(): void {
         this.setState({
             backendClient: new BackendClient(),
+            //TESTING PURPOSES ONLY TODO: Remove for production
             email: "drakebwade@gmail.com",
             password: "Password1"
         });
     }
 
     async handleSignIn() {
-        const {setIsLoggedIn, setIsAdmin, cognito} = this.props;
-        const {email, password} = this.state;
+        const {setIsLoggedIn, cognito} = this.props;
+        const {email, password, backendClient} = this.state;
 
         await cognito.signIn(email, password).catch(reason => {
-            console.log(reason);
+            console.error(reason);
         });
 
-        setIsLoggedIn(true);
-        setIsAdmin(true);
+        const userType = await backendClient.getUserType().catch(reason => {
+            console.error(reason);
+        });
+
+        setIsLoggedIn(true, userType === "admin");
     }
 
     render() {

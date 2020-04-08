@@ -1,3 +1,5 @@
+import Cognito from "./cognito/cognito";
+
 export interface Evaluation {
     id: string,
     age: string,
@@ -19,8 +21,32 @@ export interface Attempt {
 }
 
 export default class BackendClient {
+    constructor() {
+        this.cognito = new Cognito();
+    }
+
+    private cognito: Cognito;
+
     async healthCheck(): Promise<string> {
-        let response = await fetch("/api/healthcheck").then(r => r.json());
-        return response["message"];
+        return new Promise(async (resolve, reject) => {
+            let response = await fetch("/api/healthcheck").then(r => r.json()).catch(r => reject(r));
+            resolve(response["message"]);
+        });
+    }
+
+    async getUserType(): Promise<string> {
+        return new Promise(async (resolve, reject) => {
+            if (await this.cognito.isLoggedIn()) {
+                let response = await fetch("/api/user", {
+                    headers: {
+                        "TOKEN": await this.cognito.getJWT(),
+                    }
+                }).then(r => r.json()).catch(r => reject(r));
+                resolve(response["userType"]);
+            }
+            else {
+                reject("Not Logged In");
+            }
+        });
     }
 }

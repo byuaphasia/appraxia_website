@@ -11,6 +11,5 @@ export const LoggedInRoutes: any = {
 };
 
 export const AdminRoutes: any = {
-    HOME: "/",
     VIEWDATA: "/view-data",
 };

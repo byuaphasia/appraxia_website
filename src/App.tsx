@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/routes/ProtectedRoute";
 import CognitoContext from "./helpers/cognito/CognitoContext";
 import LoggedInHome from "./pages/logged_in/LoggedInHome";
 import LoggedInTest from "./pages/logged_in/LoggedInTest";
+import BackendClient from "./helpers/backend-client";
 
 interface State {
     isLoggedIn: boolean,
@@ -21,10 +22,12 @@ interface State {
 
 class App extends React.Component<{}, State> {
     private readonly cognito: Cognito;
+    private readonly backendClient: BackendClient;
 
     constructor(props: any) {
         super(props);
         this.cognito = new Cognito();
+        this.backendClient = new BackendClient();
         this.state = {
             isLoggedIn: false,
             isAdmin: false
@@ -34,16 +37,16 @@ class App extends React.Component<{}, State> {
 
     async componentDidMount(): Promise<void> {
         let loggedIn = await this.cognito.isLoggedIn();
-        this.setState({isLoggedIn: loggedIn});
+        let admin = false;
+        if (loggedIn) {
+            admin = await this.backendClient.getUserType() === "admin";
+        }
+        this.setState({isLoggedIn: loggedIn, isAdmin: admin});
     }
 
-    setIsLoggedIn(value: boolean) {
-        this.setState({isLoggedIn: value});
+    handleLogOut() {
+        this.setState({isLoggedIn: false, isAdmin: false});
     }
-
-    // setIsAdmin(value: boolean) {
-    //     this.setState({isAdmin: value});
-    // }
 
     render() {
         const {isLoggedIn, isAdmin} = this.state || {};
@@ -54,8 +57,10 @@ class App extends React.Component<{}, State> {
                     <Router>
                         <Switch>
                             {/*--------------Logged In Routes--------------------*/}
-                            <ProtectedRoute exact isAuthenticated={isLoggedIn && !isAdmin} path={LoggedInRoutes.HOME}>
-                                <LoggedInHome setIsLoggedIn={this.setIsLoggedIn.bind(this)}/>
+                            <ProtectedRoute exact isAuthenticated={isLoggedIn} path={LoggedInRoutes.HOME}>
+                                {/*Set which home page to go to*/}
+                                {isAdmin ? <AdminHome logout={this.handleLogOut.bind(this)}/>
+                                : <LoggedInHome logout={this.handleLogOut.bind(this)}/>}
                             </ProtectedRoute>
                             <ProtectedRoute exact isAuthenticated={isLoggedIn} path={LoggedInRoutes.TEST}>
                                 <LoggedInTest/>
@@ -65,9 +70,6 @@ class App extends React.Component<{}, State> {
                             </ProtectedRoute>
 
                             {/*-----------------Admin Routes---------------------*/}
-                            <ProtectedRoute exact isAuthenticated={isLoggedIn && isAdmin} path={AdminRoutes.HOME}>
-                                <AdminHome/>
-                            </ProtectedRoute>
                             <ProtectedRoute exact isAuthenticated={isLoggedIn && isAdmin} path={AdminRoutes.VIEWDATA}>
                                 <AdminTable/>
                             </ProtectedRoute>
@@ -75,17 +77,14 @@ class App extends React.Component<{}, State> {
                             {/*----------------Logged Out Routes------------------*/}
                             <LoggedOutRoute exact
                                             isAuthenticated={isLoggedIn}
-                                            isAdmin={isAdmin}
                                             path={LoggedOutRoutes.SIGNUP}>
                                 <SignUpPage/>
                             </LoggedOutRoute>
                             <LoggedOutRoute exact
                                             isAuthenticated={isLoggedIn}
-                                            isAdmin={isAdmin}
                                             path={LoggedOutRoutes.LOGIN}>
-                                <LoginPage
-                                    setIsLoggedIn={this.setIsLoggedIn.bind(this)}
-                                    setIsAdmin={() => {}}/>
+                                <LoginPage setIsLoggedIn={(value: boolean, isAdmin: boolean) =>
+                                        this.setState({isLoggedIn: value, isAdmin: isAdmin})}/>
                             </LoggedOutRoute>
                         </Switch>
                     </Router>
