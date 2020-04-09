@@ -63,13 +63,13 @@ class LoginPage extends React.Component<Props, State> {
                 <InputField label="Email"
                             value={email}
                             startAdornment={EmailIcon}
-                            onChange={value => this.setState({email: value})}/>
+                            onChange={(value: string) => this.setState({email: value})}/>
                 <br/>
                 <InputField label="Password"
                             value={password}
                             type="password"
                             startAdornment={PasswordIcon}
-                            onChange={value => this.setState({password: value})}/>
+                            onChange={(value: string) => this.setState({password: value})}/>
 
                 <LoadingButton label="Sign In" onClick={async () => await this.handleSignIn()}/>
                 <button type="button" className="link">Forgot Password?</button>

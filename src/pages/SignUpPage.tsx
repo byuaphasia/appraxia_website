@@ -42,28 +42,28 @@ export default class SignUpPage extends React.Component<Props, State> {
                 <InputField label="Email"
                             value={email}
                             startAdornment={EmailIcon}
-                            onChange={value => this.setState({email: value})}/>
+                            onChange={(value: string) => this.setState({email: value})}/>
                 <br/>
                 <InputField label="Password"
                             value={password}
                             type="password"
                             startAdornment={KeyIcon}
-                            onChange={value => this.setState({password: value})}/>
+                            onChange={(value: string) => this.setState({password: value})}/>
                 <br/>
                 <InputField label="Full Name"
                             value={name}
                             startAdornment={PersonIcon}
-                            onChange={value => this.setState({name: value})}/>
+                            onChange={(value: string) => this.setState({name: value})}/>
                 <br/>
                 <InputField label="Phone Number"
                             value={phone}
                             startAdornment={PhoneIcon}
-                            onChange={value => this.setState({phone: value})}/>
+                            onChange={(value: string) => this.setState({phone: value})}/>
                 <br/>
                 <InputField label="Address"
                             value={address}
                             startAdornment={HouseIcon}
-                            onChange={value => this.setState({address: value})}/>
+                            onChange={(value: string) => this.setState({address: value})}/>
                 <br/>
 
                 <div className="links">
