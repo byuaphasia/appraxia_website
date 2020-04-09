@@ -2,12 +2,16 @@ import React from "react";
 import {Redirect} from "react-router-dom";
 import SwipeableViews from 'react-swipeable-views';
 import Dropzone from "react-dropzone";
+
 import Splash from "../../components/Splash";
 import CustomButton from "../../components/CustomButton";
 import {LoggedInRoutes} from "../../constants/routes";
+import InputField from "../../components/InputField";
+import CustomFile from "../../model/CustomFile";
 
 import "../../style/pages/logged_in/LoggedInTest.css";
-import InputField from "../../components/InputField";
+import Spinner from "../../components/Spinner";
+
 
 interface Props {
 }
@@ -16,33 +20,19 @@ interface State {
     back: boolean
     page: number
     files: CustomFile[]
-}
-
-class CustomFile {
-    //For uploading the file and displaying it
-    public URL: string;
-    public progress: number;
-    public isLoading: boolean;
-    public file: any;
-
-    //For sending the file to the backend
-    public word: string;
-    public syllableCount: number;
-
-    constructor(file: File) {
-        this.URL = "";
-        this.progress = 0;
-        this.isLoading = false;
-        this.file = file;
-
-        this.word = "";
-        this.syllableCount = 0;
-    }
+    reportProgress: number
+    loadingReport: boolean
+    report: any
 }
 
 class LoggedInTest extends React.Component<Props, State> {
     componentDidMount(): void {
-        this.setState({page: 0, files: []});
+        this.setState({
+            page: 0,
+            files: [],
+            reportProgress: 0,
+            loadingReport: false
+        });
     }
 
     async loadFiles(files: any[]) {
@@ -75,8 +65,34 @@ class LoggedInTest extends React.Component<Props, State> {
         }));
     }
 
+    validateFiles() {
+        const {files} = this.state;
+
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].word.length < 1 || files[i].syllableCount < 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    async loadReport() {
+        const {files} = this.state;
+        // let reportProgress = 0;
+
+        this.setState({loadingReport: true});
+
+        for (let i = 0; i < files.length; i++) {
+            await new Promise((resolve) => {
+                setTimeout(() => resolve(), 1000);
+            });
+            this.setState({reportProgress: i + 1 / files.length});
+        }
+    }
+
     render() {
-        const {back, page = 0, files = []} = this.state || {};
+        const {back, page = 0, files = [], loadingReport, reportProgress} = this.state || {};
 
         if (back) {
             return <Redirect to={LoggedInRoutes.HOME}/>
@@ -87,6 +103,23 @@ class LoggedInTest extends React.Component<Props, State> {
                 {file.file.path}
             </li>
         ));
+
+        if (loadingReport && reportProgress < 1) {
+            return <div id="logged-in">
+                <Splash/>
+                <br/>
+                <h2>Loading Report...</h2>
+                <Spinner/>
+            </div>;
+        }
+
+        if(loadingReport) {
+            return <div id="logged-in">
+                <Splash/>
+                <br/>
+                <h2>Results:</h2>
+            </div>
+        }
 
         return (
             <div id="logged-in">
@@ -129,7 +162,6 @@ class LoggedInTest extends React.Component<Props, State> {
                                 }}/>
                         </div>
                     })}
-                    <p>Final Page</p>
                 </SwipeableViews>
                 <div className="buttons">
                     <CustomButton label="Back" onClick={() => {
@@ -140,10 +172,19 @@ class LoggedInTest extends React.Component<Props, State> {
                             this.setState({back: true});
                         }
                     }}/>
-                    <p>Page {page + 1} of {files.length + 2}</p>
-                    <CustomButton disabled={page === files.length + 1} label={"Next"} onClick={() => {
-                        this.setState({page: page + 1});
-                    }}/>
+                    {files.length > 0 && <>
+                        <p>Page {page + 1} of {files.length + 1}</p>
+                        <CustomButton disabled={page === files.length && !this.validateFiles()}
+                                      label={page >= files.length ? "Finish" : "Next"}
+                                      onClick={async () => {
+                                          if (page >= files.length) {
+                                              await this.loadReport();
+                                          }
+                                          else {
+                                              this.setState({page: page + 1});
+                                          }
+                                      }}/>
+                    </>}
                 </div>
             </div>
         )

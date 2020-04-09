@@ -1,4 +1,5 @@
 import Cognito from "./cognito/cognito";
+import CustomFile from "../model/CustomFile";
 
 export interface Evaluation {
     id: string,
@@ -47,6 +48,12 @@ export default class BackendClient {
             else {
                 reject("Not Logged In");
             }
+        });
+    }
+
+    async addAttempt(file: CustomFile) {
+        return new Promise(async (resolve, reject) => {
+            resolve();
         });
     }
 }
