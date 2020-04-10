@@ -1,0 +1,15 @@
+/*--------------------Admin Home Page----------------*/
+#admin .buttons {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+}
+
+#admin .MuiFormControlLabel-root {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#admin .MuiFormControlLabel-label {
+    margin-right: auto;
+}

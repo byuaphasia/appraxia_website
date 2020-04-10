@@ -83,14 +83,14 @@ class LoginPage extends React.Component<Props, State> {
                             value={email}
                             startAdornment={EmailIcon}
                             onKeyPress={this.handleKeyPress.bind(this)}
-                            onChange={value => this.setState({email: value})}/>
+                            onChange={(value: string) => this.setState({email: value})}/>
                 <br/>
                 <InputField label="Password"
                             value={password}
                             type="password"
                             startAdornment={PasswordIcon}
                             onKeyPress={this.handleKeyPress.bind(this)}
-                            onChange={value => this.setState({password: value})}/>
+                            onChange={(value: string) => this.setState({password: value})}/>
 
                 <Errors errors={errors} show={showErrors} onClose={() => this.setState({showErrors: false})}/>
 

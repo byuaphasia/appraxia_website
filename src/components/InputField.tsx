@@ -3,18 +3,18 @@ import React from 'react';
 import "../style/components/InputField.css";
 
 interface Props {
-    type?: string;
+    type?: 'text' | 'number' | 'password';
     label?: string;
     startAdornment?: any;
-    value: string;
-    onChange(value: string): void;
+    value: string | number;
+    onChange(value: string | number): void;
     onKeyPress?(event: any): any;
 }
 
 export default class InputField extends React.Component<Props, {}> {
     render() {
         const {type, label, startAdornment, onChange, onKeyPress} = this.props;
-        return <div className="input-field">
+        return <div className={startAdornment ? "input-field start" : "input-field"}>
             {startAdornment && <span className="start">
               <img src={startAdornment} alt="start"/>
             </span>}

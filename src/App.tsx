@@ -84,7 +84,7 @@ class App extends React.Component<{}, State> {
                             <LoggedOutRoute exact
                                             isAuthenticated={isLoggedIn}
                                             path={LoggedOutRoutes.LOGIN}>
-                                <LoginPage setIsLoggedIn={(value: boolean, isAdmin: boolean) =>
+                                <LoginPage setIsLoggedIn={async (value: boolean, isAdmin: boolean) =>
                                         this.setState({isLoggedIn: value, isAdmin: isAdmin})}/>
                             </LoggedOutRoute>
                         </Switch>
