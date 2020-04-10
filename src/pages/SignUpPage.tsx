@@ -9,7 +9,7 @@ import {
     Person as PersonIcon,
     VPNKey as KeyIcon
 } from '../assets/icon';
-import InputField from "../components/InputField";
+import {TextField, Icon} from "@material-ui/core";
 import CustomButton from "../components/CustomButton";
 import Errors from "../components/Errors";
 import {LoggedOutRoutes} from "../constants/routes";
@@ -64,31 +64,41 @@ class SignUpPage extends React.Component<Props, State> {
                     <img className="text" src={TextLogo} alt="text"/>
                 </div>
                 <br/>
-                <InputField label="Email"
-                            value={email}
-                            startAdornment={EmailIcon}
-                            onChange={(value: string) => this.setState({email: value})}/>
+                <TextField label="Email"
+                           value={email}
+                           InputProps={{
+                               startAdornment: <Icon><img src={EmailIcon} alt="email_icon"/></Icon>
+                           }}
+                           onChange={e => this.setState({email: e.target.value})}/>
                 <br/>
-                <InputField label="Password"
-                            value={password}
-                            type="password"
-                            startAdornment={KeyIcon}
-                            onChange={(value: string) => this.setState({password: value})}/>
+                <TextField label="Password"
+                           value={password}
+                           type="password"
+                           InputProps={{
+                               startAdornment: <Icon><img src={KeyIcon} alt="key_icon"/></Icon>
+                           }}
+                           onChange={e => this.setState({password: e.target.value})}/>
                 <br/>
-                <InputField label="Full Name"
-                            value={name}
-                            startAdornment={PersonIcon}
-                            onChange={(value: string) => this.setState({name: value})}/>
+                <TextField label="Full Name"
+                           value={name}
+                           InputProps={{
+                               startAdornment: <Icon><img src={PersonIcon} alt="person_icon"/></Icon>
+                           }}
+                           onChange={e => this.setState({name: e.target.value})}/>
                 <br/>
-                <InputField label="Phone Number"
-                            value={phone}
-                            startAdornment={PhoneIcon}
-                            onChange={(value: string) => this.setState({phone: value})}/>
+                <TextField label="Phone Number"
+                           value={phone}
+                           InputProps={{
+                               startAdornment: <Icon><img src={PhoneIcon} alt="phone_icon"/></Icon>
+                           }}
+                           onChange={e => this.setState({phone: e.target.value})}/>
                 <br/>
-                <InputField label="Address"
-                            value={address}
-                            startAdornment={HouseIcon}
-                            onChange={(value: string) => this.setState({address: value})}/>
+                <TextField label="Address"
+                           value={address}
+                           InputProps={{
+                               startAdornment: <Icon><img src={HouseIcon} alt="house_icon"/></Icon>
+                           }}
+                           onChange={e => this.setState({address: e.target.value})}/>
                 <br/>
 
                 <Errors errors={errors} show={showErrors} onClose={() => this.setState({showErrors: false})}/>

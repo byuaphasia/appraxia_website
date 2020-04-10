@@ -68,7 +68,7 @@ export default class AdminTable extends React.Component<Props, State> {
         let startDate = this.getNewDate(this.state.selectedStartDate.toUTCString())
         let endDate = this.getNewDate(this.state.selectedEndDate.toUTCString())
 
-        this.backendClient.getExportedData(startDate, endDate, includeRecordings)
+        this.backendClient.downloadExportedData(startDate, endDate, includeRecordings)
     }
 
     handleStartDateChange(date: any) {

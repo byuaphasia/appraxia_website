@@ -1,14 +1,6 @@
 import Cognito from "./cognito/cognito";
 import CustomFile from "../model/CustomFile";
 
-export interface Evaluation {
-    evaluationId: string,
-    age: string,
-    gender: string,
-    impression: string,
-    dateCreated: string,
-}
-
 export interface Attempt {
     attemptId: string,
     evaluationId: string,
@@ -36,6 +28,11 @@ export default class BackendClient {
 
     private cognito: Cognito;
 
+    /**
+     * A health check that checks if the server is running. Not used, but can be useful for testing
+     *
+     * @returns A promise that resolves to "all is well" if the server is running
+     */
     async healthCheck(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             let response = await fetch("/api/healthcheck").then(r => r.json()).catch(r => reject(r));
@@ -123,7 +120,8 @@ export default class BackendClient {
     }
 
     /**
-     * Uploads an Attempt file to a given evaluation
+     * Uploads an Attempt file to a given evaluation. This will not save the file, since there is no way to check
+     * waivers right now. In the future if that becomes available, change the query parameter "save" to be true
      *
      * @param recordingFile The CustomFile that holds the recording information
      * @param evaluationId  The id of the evaluation
@@ -135,7 +133,7 @@ export default class BackendClient {
             if (await this.cognito.isLoggedIn()) {
                 let body = new FormData();
                 body.append("recording", recordingFile.file);
-                let url = `/api/evaluation/${evaluationId}/attempt?syllableCount=${recordingFile.syllableCount}&word=${recordingFile.word}`;
+                let url = `/api/evaluation/${evaluationId}/attempt?syllableCount=${recordingFile.syllableCount}&word=${recordingFile.word}&save=false`;
 
                 let response = await fetch(url, {
                     method: "POST",
@@ -176,24 +174,32 @@ export default class BackendClient {
         })
     }
 
-    async getExportedData(startDate: string, endDate: string, includeRecordings: boolean): Promise<string> {
+    /**
+     * Downloads exported data from the backend
+     *
+     * @param startDate a string form of the start date: e.g. "YYYY-MM-DD"
+     * @param endDate   a string form of the end date: e.g. "YYYY-MM-DD"
+     * @param includeRecordings a boolean that determines whether you just download the .csv table, or a zip with the
+     *                          .csv and a folder of recordings
+     *
+     * @returns A promise that resolves if there were no errors in the request or downloading
+     */
+    async downloadExportedData(startDate: string, endDate: string, includeRecordings: boolean): Promise<string> {
         return new Promise(async (resolve, reject) => {
             if (await this.cognito.isLoggedIn()) {
-                let response = await fetch("/api/export", {
+                await fetch("/api/export", {
                     method: "POST",
                     body: JSON.stringify({startDate, endDate, includeRecordings}),
                     headers: {
                         "TOKEN": await this.cognito.getJWT(),
                         "Content-Type": "application/json",
                     }
-                })
-                .then((response) => response.blob())
-                .then((blob) => {
+                }).then((response) => response.blob()).then((blob) => {
                     const url = window.URL.createObjectURL(new Blob([blob]));
                     const link = document.createElement('a');
                     link.href = url;
 
-                    var fileType;
+                    let fileType;
 
                     if(includeRecordings) {
                         fileType = ".zip"
@@ -201,13 +207,14 @@ export default class BackendClient {
                         fileType = ".csv"
                     }
 
-                    var fileName = startDate + "-to-" + endDate + fileType;
+                    let fileName = startDate + "-to-" + endDate + fileType;
                     link.setAttribute('download', fileName);
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                })
-                .catch(r => reject(r));
+                }).catch(r => reject(r));
+
+                resolve();
             }
             else {
                 reject("Not Logged In");
