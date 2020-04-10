@@ -7,6 +7,10 @@
     grid-row-gap: 16px;
 }
 
+#login .MuiIcon-root {
+    margin-right: 8px;
+}
+
 #login .custom-button {
     width: 100px;
     justify-self: end;

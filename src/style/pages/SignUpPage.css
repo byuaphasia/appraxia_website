@@ -7,6 +7,10 @@
     grid-row-gap: 16px;
 }
 
+#sign-up .MuiIcon-root {
+    margin-right: 8px;
+}
+
 #sign-up .links {
     display: grid;
     justify-content: space-between;

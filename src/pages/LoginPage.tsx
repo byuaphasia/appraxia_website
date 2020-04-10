@@ -2,7 +2,7 @@ import React from 'react';
 import {NavLink as Link} from "react-router-dom";
 import EmailIcon from '../assets/icon/email-24px.svg';
 import PasswordIcon from '../assets/icon/vpn_key-24px.svg';
-import InputField from "../components/InputField";
+import {TextField, Icon} from "@material-ui/core";
 import {LoggedOutRoutes} from "../constants/routes";
 import Errors from "../components/Errors";
 import Splash from "../components/Splash";
@@ -35,9 +35,6 @@ class LoginPage extends React.Component<Props, State> {
     componentDidMount(): void {
         this.setState({
             backendClient: new BackendClient(),
-            //TESTING PURPOSES ONLY TODO: Remove for production
-            email: "drakebwade@gmail.com",
-            password: "Password1",
             showErrors: false
         });
     }
@@ -79,18 +76,22 @@ class LoginPage extends React.Component<Props, State> {
             <div id="login">
                 <Splash/>
                 <br/>
-                <InputField label="Email"
+                <TextField label="Email"
                             value={email}
-                            startAdornment={EmailIcon}
+                            InputProps={{
+                                startAdornment: <Icon><img src={EmailIcon} alt="email_icon"/></Icon>
+                            }}
                             onKeyPress={this.handleKeyPress.bind(this)}
-                            onChange={(value: string) => this.setState({email: value})}/>
+                            onChange={e => this.setState({email: e.target.value})}/>
                 <br/>
-                <InputField label="Password"
+                <TextField label="Password"
                             value={password}
                             type="password"
-                            startAdornment={PasswordIcon}
+                            InputProps={{
+                                startAdornment: <Icon><img src={PasswordIcon} alt="password_icon"/></Icon>
+                            }}
                             onKeyPress={this.handleKeyPress.bind(this)}
-                            onChange={(value: string) => this.setState({password: value})}/>
+                            onChange={e => this.setState({password: e.target.value})}/>
 
                 <Errors errors={errors} show={showErrors} onClose={() => this.setState({showErrors: false})}/>
 
