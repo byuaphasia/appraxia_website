@@ -175,4 +175,43 @@ export default class BackendClient {
             }
         })
     }
+
+    async getExportedData(startDate: string, endDate: string, includeRecordings: boolean): Promise<string> {
+        return new Promise(async (resolve, reject) => {
+            if (await this.cognito.isLoggedIn()) {
+                let response = await fetch("/api/export", {
+                    method: "POST",
+                    body: JSON.stringify({startDate, endDate, includeRecordings}),
+                    headers: {
+                        "TOKEN": await this.cognito.getJWT(),
+                        "Content-Type": "application/json",
+                    }
+                })
+                .then((response) => response.blob())
+                .then((blob) => {
+                    const url = window.URL.createObjectURL(new Blob([blob]));
+                    const link = document.createElement('a');
+                    link.href = url;
+
+                    var fileType;
+
+                    if(includeRecordings) {
+                        fileType = ".zip"
+                    } else {
+                        fileType = ".csv"
+                    }
+
+                    var fileName = startDate + "-to-" + endDate + fileType;
+                    link.setAttribute('download', fileName);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                })
+                .catch(r => reject(r));
+            }
+            else {
+                reject("Not Logged In");
+            }
+        })
+    }
 }
