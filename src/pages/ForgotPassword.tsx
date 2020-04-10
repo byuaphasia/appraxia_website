@@ -28,7 +28,7 @@ class ForgotPassword extends React.Component<Props, State> {
 
     async handleSubmit() {
         const {verificationCode, password, confirmPassword} = this.state || {};
-        const {email, cognito} = this.props;
+        const {email, cognito, onClose} = this.props;
         let errors: string[] = [];
 
         if (password !== confirmPassword) {
@@ -41,6 +41,7 @@ class ForgotPassword extends React.Component<Props, State> {
             errors.push(reason);
             this.setState({errors, showErrors: true});
         });
+        onClose();
     }
 
     render() {
