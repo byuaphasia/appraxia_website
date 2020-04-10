@@ -8,6 +8,8 @@ import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/picker
 import DateFnsUtils from '@date-io/date-fns';
 import BackendClient from "../../helpers/backend-client";
 
+import "../../style/pages/admin/AdminTable.css";
+
 interface Props {
 }
 
@@ -117,13 +119,13 @@ export default class AdminTable extends React.Component<Props, State> {
                     <FormControlLabel
                         control={<Switch color={this.state.checked ? 'primary' : 'secondary'} checked={this.state.checked} onChange={this.toggleChecked} />}
                         label="Include Recordings?"
+                        labelPlacement="start"
                     />
                 </FormGroup>
-                <CustomButton label="Submit to Get Data" 
-                onClick={this.getData} />
-                <CustomButton label="Back" onClick={async () => {
-                    this.setState({back: true})
-                }}/>
+                <div className="buttons">
+                    <CustomButton label="Back" onClick={() => this.setState({back: true})}/>
+                    <CustomButton label="Download" onClick={this.getData} />
+                </div>
 
             </div>
         );
