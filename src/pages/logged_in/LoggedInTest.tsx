@@ -11,6 +11,7 @@ import CustomFile from "../../model/CustomFile";
 
 import "../../style/pages/logged_in/LoggedInTest.css";
 import Spinner from "../../components/Spinner";
+import BackendClient, {Attempt} from "../../helpers/backend-client";
 
 
 interface Props {
@@ -20,16 +21,29 @@ interface State {
     back: boolean
     page: number
     files: CustomFile[]
+    ambianceFile: any,
+    evalAge: number,
+    evalGender: string,
+    evalImpression: string,
     reportProgress: number
     loadingReport: boolean
-    report: any
+    report: Attempt[]
 }
 
 class LoggedInTest extends React.Component<Props, State> {
+    private readonly backendClient: BackendClient;
+
+    constructor(props: Props) {
+        super(props);
+        this.backendClient = new BackendClient();
+    }
+
     componentDidMount(): void {
         this.setState({
             page: 0,
-            files: [],
+            evalAge: 0,
+            evalGender: "",
+            evalImpression: "",
             reportProgress: 0,
             loadingReport: false
         });
@@ -65,98 +79,169 @@ class LoggedInTest extends React.Component<Props, State> {
         }));
     }
 
-    validateFiles() {
-        const {files} = this.state;
-
-        for (let i = 0; i < files.length; i++) {
-            if (files[i].word.length < 1 || files[i].syllableCount < 1) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     async loadReport() {
-        const {files} = this.state;
-        // let reportProgress = 0;
+        const {files, ambianceFile, evalAge, evalGender, evalImpression} = this.state || {};
+        let reportProgress = 0;
+        const reportProgressMax = files.length + 3; // evaluation, ambiance, all of the files, then getting the attempts back
+        const updateProgress = () => {
+            reportProgress++;
+            this.setState({reportProgress: reportProgress / reportProgressMax});
+        };
 
         this.setState({loadingReport: true});
 
+        // 1) Create the evaluation
+        const {evaluationId} = await this.backendClient.createEvaluation(evalAge.toString(), evalGender, evalImpression);
+        updateProgress();
+
+        // 2) Upload the ambiance file
+        await this.backendClient.uploadAmbianceFile(evaluationId, ambianceFile);
+        updateProgress();
+
+        // 3) Upload the files as attempts
         for (let i = 0; i < files.length; i++) {
-            await new Promise((resolve) => {
-                setTimeout(() => resolve(), 1000);
-            });
-            this.setState({reportProgress: i + 1 / files.length});
+            const {attemptId, wsd} = await this.backendClient.addAttempt(files[i], evaluationId);
+            console.log({word: files[i].word, attemptId, wsd});
+            updateProgress();
+        }
+
+        // 4) Get the attempts from the backend
+        const report: Attempt[] = await this.backendClient.getAttempts(evaluationId);
+        this.setState({report});
+        updateProgress();
+    }
+
+    getAverageWSD(): number {
+        const {report} = this.state;
+        let runningTotal: number = 0;
+
+        for (let i = 0; i < report.length; i++) {
+            runningTotal += report[i].wsd;
+        }
+
+        return runningTotal / report.length;
+    }
+
+    isNextButtonEnabled(): boolean {
+        const {page, evalAge, evalGender, evalImpression, ambianceFile, files} = this.state || {};
+        switch(page) {
+            case 0:
+                return evalAge > 0 && evalGender.length > 0 && evalImpression.length > 0;
+            case 1:
+                return ambianceFile && files && files.length > 0;
+            default:
+                return (files && files.length > 0) ? (files[page - 2].syllableCount > 0 && !!files[page - 2].word && files[page - 2].word.length > 0) : false;
         }
     }
 
+    getPageCount() {
+        const {files} = this.state || {};
+        return files ? files.length + 2 : 2
+    }
+
     render() {
-        const {back, page = 0, files = [], loadingReport, reportProgress} = this.state || {};
+        const {back, page = 0,
+            files, ambianceFile,
+            evalAge, evalGender, evalImpression,
+            loadingReport, reportProgress, report} = this.state || {};
 
         if (back) {
             return <Redirect to={LoggedInRoutes.HOME}/>
         }
 
-        const acceptedFiles = files.map(file => (
+        const acceptedFiles = files && files.map(file => (
             <li key={file.file.path}>
                 {file.file.path}
             </li>
         ));
 
         if (loadingReport && reportProgress < 1) {
-            return <div id="logged-in">
+            return <div id="logged-in" className="test">
                 <Splash/>
                 <br/>
-                <h2>Loading Report...</h2>
+                <div className="loading">Loading Report...</div>
                 <Spinner/>
             </div>;
         }
 
         if(loadingReport) {
-            return <div id="logged-in">
+            return <div id="logged-in" className="test">
                 <Splash/>
                 <br/>
-                <h2>Results:</h2>
+                <div className="report">
+                    <div className="header">Results:</div>
+                    {report.map(attempt =>
+                        <div className="attempt">
+                            <div className="word">{attempt.word}</div>
+                            <div className="wsd">{attempt.wsd}</div>
+                        </div>)}
+                    <div className="total">
+                        <div className="header">Average WSD</div>
+                        <div className="content">{this.getAverageWSD().toFixed(2)}</div>
+                    </div>
+                </div>
+                <div className="buttons one">
+                    <CustomButton label={"Done"} onClick={() => this.setState({back: true})}/>
+                </div>
             </div>
         }
 
         return (
-            <div id="logged-in">
+            <div id="logged-in" className="test">
                 <Splash/>
                 <br/>
                 <SwipeableViews index={page}>
                     <div className="page">
+                        <div className="header">Patient Information</div>
+                        <div className="content">
+                            <InputField label="Age" type="number" value={evalAge} onChange={(value: number) => this.setState({evalAge: value})}/>
+                            <InputField label="Gender" value={evalGender} onChange={(value: string) => this.setState({evalGender: value})}/>
+                            <InputField label="Impression" value={evalImpression} onChange={(value: string) => this.setState({evalImpression: value})}/>
+                        </div>
+                    </div>
+                    <div className="page">
+                        <div className="header">Ambiance Recording</div>
+                        <Dropzone accept={".wav"}
+                                  onDrop={acceptedFiles => this.setState({ambianceFile: acceptedFiles[0]})}>
+                            {({getRootProps, getInputProps}) => (
+                                <section className="dropzone-container">
+                                    <div {...getRootProps({className: "dropzone"})}>
+                                        <input {...getInputProps()}/>
+                                        <p>Drag and Drop here, or click to select files</p>
+                                    </div>
+                                    {ambianceFile && <div className="dropzone-file">File Name: {ambianceFile.path}</div>}
+                                </section>
+                            )}
+                        </Dropzone>
+                        <br/>
+                        <div className="header">Word Recordings</div>
                         <Dropzone accept={".wav"}
                             onDrop={acceptedFiles => this.loadFiles(acceptedFiles)}>
                             {({getRootProps, getInputProps}) => (
                                 <section className="dropzone-container">
                                     <div {...getRootProps({className: "dropzone"})}>
                                         <input {...getInputProps()}/>
-                                        <p>Drag and Drop some files here, or click to select files</p>
+                                        <p>Drag and Drop here, or click to select files</p>
                                     </div>
-                                    <aside>
-                                        <h4>Files</h4>
+                                    {acceptedFiles && <div className="dropzone-files">
+                                        <div className="header">Word Files:</div>
                                         <ul>{acceptedFiles}</ul>
-                                    </aside>
+                                    </div>}
                                 </section>
                             )}
                         </Dropzone>
                     </div>
-                    {files.map((file, i) => {
-                        return <div key={`${i}-${file.file.path}`} className="file-form">
-                            <p>File Name: {file.file.path}</p>
+                    {files && files.map((file, i) => {
+                        return <div key={`${i}-${file.file.path}`} className="page">
+                            <div className="header">{file.file.path}</div>
                             {file.isLoading ? <p>{(file.progress * 100).toFixed(2) + "%"}</p> :
                                 <audio id="audio-element" src={file.URL} controls>
                                     Your browser does not support the
                                     <code>audio</code> element.
                                 </audio>}
-                                <br/>
-                                <br/>
                                 <InputField label="Word" value={file.word} onChange={(value: string) => {
                                     this.setFileAttribute(file.file.path, "word", value);
                                 }}/>
-                                <br/>
                                 <InputField label="Syllable Count" type="number" value={file.syllableCount} onChange={(value: number) => {
                                     this.setFileAttribute(file.file.path, "syllableCount", value);
                                 }}/>
@@ -172,19 +257,17 @@ class LoggedInTest extends React.Component<Props, State> {
                             this.setState({back: true});
                         }
                     }}/>
-                    {files.length > 0 && <>
-                        <p>Page {page + 1} of {files.length + 1}</p>
-                        <CustomButton disabled={page === files.length && !this.validateFiles()}
-                                      label={page >= files.length ? "Finish" : "Next"}
-                                      onClick={async () => {
-                                          if (page >= files.length) {
-                                              await this.loadReport();
-                                          }
-                                          else {
-                                              this.setState({page: page + 1});
-                                          }
-                                      }}/>
-                    </>}
+                    <p>Page {page + 1} of {this.getPageCount()}</p>
+                    <CustomButton disabled={!this.isNextButtonEnabled()}
+                                  label={page >= this.getPageCount() - 1 ? page === 0 ? "Next" : "Finish" : "Next"}
+                                  onClick={async () => {
+                                      if (page >= this.getPageCount() - 1 && (page !== 0 && page !== 1)) {
+                                          await this.loadReport();
+                                      }
+                                      else {
+                                          this.setState({page: page + 1});
+                                      }
+                                  }}/>
                 </div>
             </div>
         )

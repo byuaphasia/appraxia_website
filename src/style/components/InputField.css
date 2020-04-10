@@ -3,6 +3,7 @@
     display: grid;
     align-items: center;
     grid-template-columns: auto;
+    margin-top: 16px;
 }
 
 .input-field.start {

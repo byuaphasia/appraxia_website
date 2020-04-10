@@ -2,23 +2,31 @@ import Cognito from "./cognito/cognito";
 import CustomFile from "../model/CustomFile";
 
 export interface Evaluation {
-    id: string,
+    evaluationId: string,
     age: string,
     gender: string,
     impression: string,
-    owner_id: string,
-    ambiance_threshold: number,
-    date_created: string,
+    dateCreated: string,
 }
 
 export interface Attempt {
-    id: string,
-    evaluation_id: string,
+    attemptId: string,
+    evaluationId: string,
     word: string,
     duration: number,
-    date_created: string,
+    dateCreated: string,
     active: boolean,
-    syllable_count: number
+    syllableCount: number,
+    wsd: number
+}
+
+export interface AttemptReturn {
+    attemptId: string,
+    wsd: string
+}
+
+export interface EvaluationReturn {
+    evaluationId: string,
 }
 
 export default class BackendClient {
@@ -31,11 +39,16 @@ export default class BackendClient {
     async healthCheck(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             let response = await fetch("/api/healthcheck").then(r => r.json()).catch(r => reject(r));
-            resolve(response["message"]);
+            response ? resolve(response["message"]) : reject("Response Error in /healthcheck");
         });
     }
 
-    async getUserType(): Promise<string> {
+    /**
+     * Gets the user type of the currently logged in User
+     *
+     * @returns a Promise that resolves to either "user" or "admin" if there is a currently logged in user
+     */
+    async getUserType(): Promise<"user" | "admin"> {
         return new Promise(async (resolve, reject) => {
             if (await this.cognito.isLoggedIn()) {
                 let response = await fetch("/api/user", {
@@ -43,7 +56,9 @@ export default class BackendClient {
                         "TOKEN": await this.cognito.getJWT(),
                     }
                 }).then(r => r.json()).catch(r => reject(r));
-                resolve(response["userType"]);
+
+                response ? resolve(response["userType"] as "user" | "admin")
+                    : reject("Response Error in /user");
             }
             else {
                 reject("Not Logged In");
@@ -51,9 +66,113 @@ export default class BackendClient {
         });
     }
 
-    async addAttempt(file: CustomFile) {
+    /**
+     * Creates a new Evaluation
+     *
+     * @param age   The age formatted as a string: e.g. "40" or "no answer"
+     * @param gender    The gender, either "Male", "Female", or "no answer"
+     * @param impression    A comma delimited list of impressions: e.g. "apraxia,aphasia"
+     *
+     * @returns a Promise that resolves to an evaluation id
+     */
+    async createEvaluation(age: string, gender: string, impression: string): Promise<EvaluationReturn> {
         return new Promise(async (resolve, reject) => {
-            resolve();
+            if (await this.cognito.isLoggedIn()) {
+                let response = await fetch("/api/evaluation", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "TOKEN": await this.cognito.getJWT(),
+                    },
+                    body: JSON.stringify({age, gender, impression}),
+                }).then(r => r.json()).catch(r => reject(r));
+
+                response ? resolve(response as EvaluationReturn)
+                    : reject("Response Error in /evaluation");
+            }
+        })
+    }
+
+    /**
+     * Uploads an Ambiance file to a given evaluation
+     *
+     * @param evaluationId  An evaluation to upload to
+     * @param ambianceFile  The ambiance file to upload. Must be a .wav file
+     *
+     * @returns a Promise that resolves if the upload is successful
+     */
+    async uploadAmbianceFile(evaluationId: string, ambianceFile: any) {
+        return new Promise(async (resolve, reject) => {
+            if (await this.cognito.isLoggedIn()) {
+                let body = new FormData();
+                body.append("recording", ambianceFile);
+                let url = `/api/evaluation/${evaluationId}/ambiance`;
+
+                let response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "TOKEN": await this.cognito.getJWT(),
+                    },
+                    body: body,
+                }).then(r => r.json()).catch(r => reject(r));
+
+                response ? resolve(response)
+                    : reject(`Response Error in ${url}`);
+            }
+        })
+    }
+
+    /**
+     * Uploads an Attempt file to a given evaluation
+     *
+     * @param recordingFile The CustomFile that holds the recording information
+     * @param evaluationId  The id of the evaluation
+     *
+     * @returns a Promise that resolves to an AttemptReturn if successful
+     */
+    async addAttempt(recordingFile: CustomFile, evaluationId: string): Promise<AttemptReturn> {
+        return new Promise(async (resolve, reject) => {
+            if (await this.cognito.isLoggedIn()) {
+                let body = new FormData();
+                body.append("recording", recordingFile.file);
+                let url = `/api/evaluation/${evaluationId}/attempt?syllableCount=${recordingFile.syllableCount}&word=${recordingFile.word}`;
+
+                let response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "TOKEN": await this.cognito.getJWT(),
+                    },
+                    body: body
+                }).then(r => r.json()).catch(r => reject(r));
+
+                response ? resolve(response as AttemptReturn)
+                    : reject(`Response Error in ${url}`);
+            }
         });
+    }
+
+    /**
+     * Gets the attempts for a particular evaluation
+     *
+     * @param evaluationId  The id of the evaluation
+     *
+     * @returns a Promise that resolves to a list of Attempts
+     */
+    async getAttempts(evaluationId: string): Promise<Attempt[]> {
+        return new Promise(async (resolve, reject) => {
+            if (await this.cognito.isLoggedIn()) {
+                let url = `/api/evaluation/${evaluationId}/attempts`;
+
+                let response = await fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "TOKEN": await this.cognito.getJWT(),
+                    }
+                }).then(r => r.json()).catch(r => reject(r));
+
+                response ? resolve(response["attempts"] as Attempt[])
+                    : reject(`Response Error in ${url}`);
+            }
+        })
     }
 }

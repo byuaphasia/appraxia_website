@@ -1,9 +1,27 @@
-/*--------------------Logged In Home Page----------------*/
+/*--------------------Logged In Test Page----------------*/
+#logged-in.test {
+    max-width: 600px;
+    display: grid;
+    justify-items: center;
+    text-align: center;
+}
+
 #logged-in .buttons {
+    min-width: 300px;
     display: grid;
     grid-template-columns: auto auto auto;
     justify-content: space-between;
     align-items: center;
+}
+
+#logged-in .buttons.two {
+    grid-template-columns: auto auto;
+}
+
+#logged-in .buttons.one {
+    grid-template-columns: auto;
+    justify-content: stretch;
+    justify-items: stretch;
 }
 
 .dropzone {
@@ -20,12 +38,96 @@
     color: #bdbdbd;
     outline: none;
     transition: border .24s ease-in-out;
+    margin-bottom: 8px;
+}
+
+.dropzone-container {
+    margin-bottom: 16px;
 }
 
 #logged-in .page {
     padding: 16px;
+    display: grid;
+    justify-content: center;
+}
+
+#logged-in .page .content {
+    width: 300px;
 }
 
 #audio-element {
     width: 100%;
+    margin-bottom: 16px;
+}
+
+/*-------------------Pages----------------------------*/
+#logged-in .page .header,
+#logged-in .report .header {
+    color: var(--color-1);
+    font-size: 24px;
+    font-family: CustomHeading, sans-serif;
+    margin-bottom: 16px;
+}
+
+#logged-in .page .dropzone-file {
+    color: var(--color-1);
+    font-size: 16px;
+    font-family: CustomSubHeading, sans-serif;
+}
+
+#logged-in .page .dropzone-files {
+    color: var(--color-1);
+}
+
+#logged-in .page .dropzone-files .header {
+    font-size: 16px;
+    font-family: CustomSubHeading, sans-serif;
+}
+
+#logged-in .page .dropzone-files ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#logged-in .page .dropzone-files ul li {
+    font-size: 12px;
+    font-family: CustomBodyText, sans-serif;
+    padding: 8px;
+}
+
+/*-------------------Loading--------------------------*/
+#logged-in .loading {
+    color: var(--color-1);
+    font-size: 24px;
+    font-family: CustomHeading, sans-serif;
+}
+
+/*-------------------Results--------------------------*/
+#logged-in .report {
+    width: 300px;
+}
+
+#logged-in .report .attempt {
+    color: var(--color-1);
+    font-size: 16px;
+    font-family: CustomBodyText, sans-serif;
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+    max-width: 300px;
+    padding: 16px;
+    border-bottom: rgba(0, 0, 0, 0.1) solid 1px
+}
+
+#logged-in .report .total .header {
+    font-size: 16px;
+    padding-top: 16px;
+    margin-bottom: 8px;
+}
+
+#logged-in .report .total .content {
+    font-size: 24px;
+    font-family: CustomBodyText, sans-serif;
+    color: var(--color-1);
 }
