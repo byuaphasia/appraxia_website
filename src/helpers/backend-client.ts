@@ -24,9 +24,11 @@ export interface EvaluationReturn {
 export default class BackendClient {
     constructor() {
         this.cognito = new Cognito();
+        this.backendURL = process.env.REACT_APP_BACKEND || "http://localhost:8080";
     }
 
     private cognito: Cognito;
+    private backendURL: string;
 
     /**
      * A health check that checks if the server is running. Not used, but can be useful for testing
@@ -35,7 +37,7 @@ export default class BackendClient {
      */
     async healthCheck(): Promise<string> {
         return new Promise(async (resolve, reject) => {
-            let response = await fetch("/api/healthcheck").then(r => r.json()).catch(r => reject(r));
+            let response = await fetch(this.backendURL + "/healthcheck").then(r => r.json()).catch(r => reject(r));
             response ? resolve(response["message"]) : reject("Response Error in /healthcheck");
         });
     }
@@ -48,7 +50,7 @@ export default class BackendClient {
     async getUserType(): Promise<"user" | "admin"> {
         return new Promise(async (resolve, reject) => {
             if (await this.cognito.isLoggedIn()) {
-                let response = await fetch("/api/user", {
+                let response = await fetch(this.backendURL + "/user", {
                     headers: {
                         "TOKEN": await this.cognito.getJWT(),
                     }
@@ -75,7 +77,7 @@ export default class BackendClient {
     async createEvaluation(age: string, gender: string, impression: string): Promise<EvaluationReturn> {
         return new Promise(async (resolve, reject) => {
             if (await this.cognito.isLoggedIn()) {
-                let response = await fetch("/api/evaluation", {
+                let response = await fetch(this.backendURL + "/evaluation", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -103,7 +105,7 @@ export default class BackendClient {
             if (await this.cognito.isLoggedIn()) {
                 let body = new FormData();
                 body.append("recording", ambianceFile);
-                let url = `/api/evaluation/${evaluationId}/ambiance`;
+                let url = this.backendURL + `/evaluation/${evaluationId}/ambiance`;
 
                 let response = await fetch(url, {
                     method: "POST",
@@ -133,7 +135,7 @@ export default class BackendClient {
             if (await this.cognito.isLoggedIn()) {
                 let body = new FormData();
                 body.append("recording", recordingFile.file);
-                let url = `/api/evaluation/${evaluationId}/attempt?syllableCount=${recordingFile.syllableCount}&word=${recordingFile.word}&save=false`;
+                let url = this.backendURL + `/evaluation/${evaluationId}/attempt?syllableCount=${recordingFile.syllableCount}&word=${recordingFile.word}&save=false`;
 
                 let response = await fetch(url, {
                     method: "POST",
@@ -159,7 +161,7 @@ export default class BackendClient {
     async getAttempts(evaluationId: string): Promise<Attempt[]> {
         return new Promise(async (resolve, reject) => {
             if (await this.cognito.isLoggedIn()) {
-                let url = `/api/evaluation/${evaluationId}/attempts`;
+                let url = this.backendURL + `/evaluation/${evaluationId}/attempts`;
 
                 let response = await fetch(url, {
                     method: "GET",
@@ -187,7 +189,7 @@ export default class BackendClient {
     async downloadExportedData(startDate: string, endDate: string, includeRecordings: boolean): Promise<string> {
         return new Promise(async (resolve, reject) => {
             if (await this.cognito.isLoggedIn()) {
-                await fetch("/api/export", {
+                await fetch(this.backendURL + "/export", {
                     method: "POST",
                     body: JSON.stringify({startDate, endDate, includeRecordings}),
                     headers: {
