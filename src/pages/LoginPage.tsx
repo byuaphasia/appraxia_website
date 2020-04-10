@@ -74,11 +74,12 @@ class LoginPage extends React.Component<Props, State> {
         let errors: string[] = [];
 
         if (email && isValidEmail(email)) {
-            await cognito.sendForgotPassword(email).catch(e => {
-                errors.push(e);
-                this.setState({errors, showErrors: true});
-            });
-            this.setState({showModal: true});
+            await cognito.sendForgotPassword(email)
+                .then(() => this.setState({showModal: true}))
+                .catch(e => {
+                    errors.push(e);
+                    this.setState({errors, showErrors: true});
+                });
         }
         else {
             errors.push("Invalid Email Entered");
