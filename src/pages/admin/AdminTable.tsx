@@ -6,6 +6,7 @@ import {LoggedInRoutes} from "../../constants/routes";
 import { FormGroup, FormControlLabel, Switch } from '@material-ui/core';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
+import BackendClient from "../../helpers/backend-client";
 
 interface Props {
 }
@@ -22,8 +23,12 @@ export default class AdminTable extends React.Component<Props, State> {
 
     }
 
+    private readonly backendClient: BackendClient;
+
     constructor(props: any) {
         super(props);
+
+        this.backendClient = new BackendClient();
 
         this.state = {
             checked: false,
@@ -52,37 +57,16 @@ export default class AdminTable extends React.Component<Props, State> {
     }
 
     getNewDate(dateIn: any) {
-        return new Date(dateIn).getFullYear() + "-" + (new Date(dateIn).getMonth() + 1) +
-        "-" + new Date(dateIn).getDate()
+        return (new Date(dateIn).getFullYear() + "-" + ('0' + (new Date(dateIn).getMonth()+1)).slice(-2)
+        + "-" + ("0" + new Date(dateIn).getDate()).slice(-2));
     }
 
     getData() {
         let includeRecordings = this.state.checked
         let startDate = this.getNewDate(this.state.selectedStartDate.toUTCString())
         let endDate = this.getNewDate(this.state.selectedEndDate.toUTCString())
-        console.log(startDate)
-        console.log(endDate)
-        console.log(includeRecordings)
-        async function postData(url = '', data = {
-            "startDate": startDate,
-            "endDate": endDate,
-            "includeRecordings": includeRecordings
-          }) {
-            // Default options are marked with *
-            const response = await fetch(url, {
-              method: 'POST',
-              mode: 'cors',
-              cache: 'no-cache',
-              credentials: 'same-origin',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              redirect: 'follow',
-              referrerPolicy: 'no-referrer',
-              body: JSON.stringify(data)
-            });
-            return response.json();
-          }
+
+        this.backendClient.getExportedData(startDate, endDate, includeRecordings)
     }
 
     handleStartDateChange(date: any) {
