@@ -2,16 +2,17 @@ import React from "react";
 import {Redirect} from "react-router-dom";
 import SwipeableViews from 'react-swipeable-views';
 import Dropzone from "react-dropzone";
+import {TextField} from "@material-ui/core";
 
 import Splash from "../../components/Splash";
 import CustomButton from "../../components/CustomButton";
 import {LoggedInRoutes} from "../../constants/routes";
-import InputField from "../../components/InputField";
 import CustomFile from "../../model/CustomFile";
 
 import "../../style/pages/logged_in/LoggedInTest.css";
 import Spinner from "../../components/Spinner";
 import BackendClient, {Attempt} from "../../helpers/backend-client";
+import Errors from "../../components/Errors";
 
 
 interface Props {
@@ -21,13 +22,14 @@ interface State {
     back: boolean
     page: number
     files: CustomFile[]
-    ambianceFile: any,
-    evalAge: number,
-    evalGender: string,
-    evalImpression: string,
+    ambianceFile: any
+    evalAge: number
+    evalGender: string
+    evalImpression: string
     reportProgress: number
     loadingReport: boolean
     report: Attempt[]
+    errors: string[]
 }
 
 class LoggedInTest extends React.Component<Props, State> {
@@ -81,6 +83,7 @@ class LoggedInTest extends React.Component<Props, State> {
 
     async loadReport() {
         const {files, ambianceFile, evalAge, evalGender, evalImpression} = this.state || {};
+        let errors: string[] = [];
         let reportProgress = 0;
         const reportProgressMax = files.length + 3; // evaluation, ambiance, all of the files, then getting the attempts back
         const updateProgress = () => {
@@ -91,24 +94,52 @@ class LoggedInTest extends React.Component<Props, State> {
         this.setState({loadingReport: true});
 
         // 1) Create the evaluation
-        const {evaluationId} = await this.backendClient.createEvaluation(evalAge.toString(), evalGender, evalImpression);
-        updateProgress();
+        let evaluationId: any;
+        try {
+            evaluationId = (await this.backendClient.createEvaluation(evalAge.toString(), evalGender, evalImpression)).evaluationId;
+            updateProgress();
+        } catch(e) {
+            errors.push("Error creating evaluation");
+            console.error(e);
+            this.setState({errors, loadingReport: false});
+            return;
+        }
 
         // 2) Upload the ambiance file
-        await this.backendClient.uploadAmbianceFile(evaluationId, ambianceFile);
-        updateProgress();
+        try {
+            await this.backendClient.uploadAmbianceFile(evaluationId, ambianceFile);
+            updateProgress();
+        } catch(e) {
+            errors.push("Error uploading ambiance file");
+            console.error(e);
+            this.setState({errors, loadingReport: false});
+            return;
+        }
 
         // 3) Upload the files as attempts
         for (let i = 0; i < files.length; i++) {
-            const {attemptId, wsd} = await this.backendClient.addAttempt(files[i], evaluationId);
-            console.log({word: files[i].word, attemptId, wsd});
-            updateProgress();
+            try {
+                await this.backendClient.addAttempt(files[i], evaluationId);
+                updateProgress();
+            } catch(e) {
+                errors.push(`Error uploading recording: ${files[i].word}`);
+                console.error(e);
+                this.setState({errors, loadingReport: false});
+                return;
+            }
         }
 
         // 4) Get the attempts from the backend
-        const report: Attempt[] = await this.backendClient.getAttempts(evaluationId);
-        this.setState({report});
-        updateProgress();
+        try {
+            const report: Attempt[] = await this.backendClient.getAttempts(evaluationId);
+            this.setState({report});
+            updateProgress();
+        } catch(e) {
+            errors.push("Error while fetching report");
+            console.error(e);
+            this.setState({errors, loadingReport: false});
+            return;
+        }
     }
 
     getAverageWSD(): number {
@@ -140,7 +171,7 @@ class LoggedInTest extends React.Component<Props, State> {
     }
 
     render() {
-        const {back, page = 0,
+        const {back, errors, page = 0,
             files, ambianceFile,
             evalAge, evalGender, evalImpression,
             loadingReport, reportProgress, report} = this.state || {};
@@ -194,9 +225,9 @@ class LoggedInTest extends React.Component<Props, State> {
                     <div className="page">
                         <div className="header">Patient Information</div>
                         <div className="content">
-                            <InputField label="Age" type="number" value={evalAge} onChange={(value: number) => this.setState({evalAge: value})}/>
-                            <InputField label="Gender" value={evalGender} onChange={(value: string) => this.setState({evalGender: value})}/>
-                            <InputField label="Impression" value={evalImpression} onChange={(value: string) => this.setState({evalImpression: value})}/>
+                            <TextField label="Age" type="number" value={evalAge} onChange={e => this.setState({evalAge: parseInt(e.target.value)})}/>
+                            <TextField label="Gender" value={evalGender} onChange={e => this.setState({evalGender: e.target.value})}/>
+                            <TextField label="Impression" value={evalImpression} onChange={e => this.setState({evalImpression: e.target.value})}/>
                         </div>
                     </div>
                     <div className="page">
@@ -231,7 +262,7 @@ class LoggedInTest extends React.Component<Props, State> {
                             )}
                         </Dropzone>
                     </div>
-                    {files && files.map((file, i) => {
+                    {files ? files.map((file, i) => {
                         return <div key={`${i}-${file.file.path}`} className="page">
                             <div className="header">{file.file.path}</div>
                             {file.isLoading ? <p>{(file.progress * 100).toFixed(2) + "%"}</p> :
@@ -239,15 +270,16 @@ class LoggedInTest extends React.Component<Props, State> {
                                     Your browser does not support the
                                     <code>audio</code> element.
                                 </audio>}
-                                <InputField label="Word" value={file.word} onChange={(value: string) => {
-                                    this.setFileAttribute(file.file.path, "word", value);
+                                <TextField label="Word" value={file.word} onChange={e => {
+                                    this.setFileAttribute(file.file.path, "word", e.target.value);
                                 }}/>
-                                <InputField label="Syllable Count" type="number" value={file.syllableCount} onChange={(value: number) => {
-                                    this.setFileAttribute(file.file.path, "syllableCount", value);
+                                <TextField label="Syllable Count" type="number" value={file.syllableCount} onChange={e => {
+                                    this.setFileAttribute(file.file.path, "syllableCount", parseInt(e.target.value));
                                 }}/>
                         </div>
-                    })}
+                    }) : <></>}
                 </SwipeableViews>
+                <Errors errors={errors} show={errors && errors.length > 0} onClose={() => this.setState({errors: []})}/>
                 <div className="buttons">
                     <CustomButton label="Back" onClick={() => {
                         if (page > 0) {

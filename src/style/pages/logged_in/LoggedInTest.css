@@ -55,6 +55,11 @@
     width: 300px;
 }
 
+#logged-in .page .MuiTextField-root {
+    width: 100%;
+    margin-top: 8px;
+}
+
 #audio-element {
     width: 100%;
     margin-bottom: 16px;
